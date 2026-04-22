@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Turnos Médicos</title>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .login-container { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        #calendar-container { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .user-info { margin-bottom: 20px; padding: 10px; border-bottom: 2px solid #eee; }
+    </style>
+</head>
+<body>
+
+    <div id="login-section" class="login-container">
+        <h2>Acceso Médicos</h2>
+        <input type="text" id="dniInput" placeholder="Ingrese su DNI">
+        <input type="password" id="passInput" placeholder="Contraseña (DNI)">
+        <button onclick="login()">Ingresar</button>
+    </div>
+
+    <div id="calendar-container">
+        <div class="user-info">
+            <h3 id="nombreMedico"></h3>
+            <p id="zonaMedico"></p>
+        </div>
+        <div id="calendar"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
