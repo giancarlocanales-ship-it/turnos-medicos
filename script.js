@@ -5,33 +5,37 @@ const CONFIG_TURNOS = {
     "V": { desc: "Vacaciones", color: "#FFF59D", text: "#827717" },
     "004": { desc: "Libre/Descanso", color: "#F5F5F5", text: "#757575" },
     "999": { desc: "Feriado", color: "#E0E0E0", text: "#424242" },
-    "150": { desc: "Turno Especial", color: "#E1BEE7", text: "#4A148C" },
-    "158/": { desc: "08:00–14:00", color: "#E3F2FD", text: "#0D47A1" }
+    "150": { desc: "Turno Especial", color: "#E1BEE7", text: "#4A148C" }
 };
 
-// Cargar el archivo
-fetch('datos.csv.csv') // Asegúrate que el nombre en GitHub sea exactamente este
+// 1. CARGA DEL ARCHIVO: Usamos 'datos.csv' que es tu nombre actual
+fetch('datos.csv')
     .then(res => res.text())
     .then(content => {
         const filas = content.split(/\r?\n/);
-        // Esta línea es la clave: separa por cualquier cantidad de espacios
-        datosCompletos = filas.filter(f => f.trim() !== "").map(f => f.trim().split(/\s{2,}/));
-        console.log("Sistema cargado");
+        // Filtramos filas vacías y separamos por bloques de 2 o más espacios
+        datosCompletos = filas.filter(f => f.trim() !== "").map(f => {
+            return f.trim().split(/\s{2,}/); 
+        });
+        console.log("Sistema listo");
     });
 
 function login() {
     const dniInput = document.getElementById('dniInput').value.trim();
     const passInput = document.getElementById('passInput').value.trim();
 
-    // En tu archivo de espacios, el DNI es el cuarto elemento (índice 3)
-    const medico = datosCompletos.find(f => f[3] && f[3].includes(dniInput));
+    // 2. BUSQUEDA INTELIGENTE: Busca el DNI en cualquier parte de la fila
+    const medico = datosCompletos.find(f => {
+        return f.some(col => col.includes(dniInput));
+    });
 
     if (medico && dniInput === passInput) {
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('calendar-container').style.display = 'block';
         
-        document.getElementById('nombreMedico').innerText = medico[1]; // Nombre
-        document.getElementById('zonaMedico').innerText = "Zona: " + (medico[7] || "Asignada"); 
+        // Asignamos nombre (suele ser la 2da columna detectada)
+        document.getElementById('nombreMedico').innerText = medico[1] || "Médico Verificado";
+        document.getElementById('zonaMedico').innerText = "Acceso Correcto";
         
         iniciarCalendario(medico);
     } else {
@@ -44,31 +48,28 @@ function iniciarCalendario(datosMedico) {
     const eventos = [];
     const anioMes = "2026-05-"; 
 
-    // Buscamos los turnos al final del array del médico
-    // En tu archivo de texto, los turnos empiezan después de la zona
-    let inicioTurnos = 9; 
-    
-    for (let i = inicioTurnos; i < datosMedico.length; i++) {
-        let bloque = datosMedico[i].split(" "); // Algunos turnos vienen pegados por un solo espacio
-        bloque.forEach((codigo, index) => {
-            codigo = codigo.trim();
-            if (codigo && CONFIG_TURNOS[codigo]) {
-                let diaNum = eventos.length + 1;
-                if (diaNum <= 31) {
-                    let fechaStr = anioMes + (diaNum < 10 ? '0' + diaNum : diaNum);
-                    eventos.push({
-                        title: `${CONFIG_TURNOS[codigo].desc} (${codigo})`,
-                        start: fechaStr,
-                        backgroundColor: CONFIG_TURNOS[codigo].color,
-                        textColor: CONFIG_TURNOS[codigo].text
-                    });
-                }
+    // 3. DETECCION DE TURNOS: Busca códigos válidos en toda la fila
+    let diaActual = 1;
+    datosMedico.forEach(fragmento => {
+        // Separamos por espacios simples por si hay códigos pegados
+        const posiblesCodigos = fragmento.split(/\s+/);
+        posiblesCodigos.forEach(cod => {
+            let c = cod.trim();
+            if (CONFIG_TURNOS[c] && diaActual <= 31) {
+                let fechaStr = anioMes + (diaActual < 10 ? '0' + diaActual : diaActual);
+                eventos.push({
+                    title: `${CONFIG_TURNOS[c].desc} (${c})`,
+                    start: fechaStr,
+                    backgroundColor: CONFIG_TURNOS[c].color,
+                    textColor: CONFIG_TURNOS[c].text
+                });
+                diaActual++;
             }
         });
-    }
+    });
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'daygridMonth',
+        initialView: 'dayGridMonth',
         initialDate: '2026-05-01',
         locale: 'es',
         events: eventos
